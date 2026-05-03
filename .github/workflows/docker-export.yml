@@ -1,0 +1,25 @@
+name: Export Docker Image
+
+on:
+  workflow_dispatch:
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+
+      - name: Pull and save image
+        run: |
+          sudo docker pull jaey/pixhawk:px4-gazebo-harmonic
+          sudo docker save jaey/pixhawk:px4-gazebo-harmonic -o px4-harmonic.tar
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: px4-harmonic
+          path: px4-harmonic.tar
+
