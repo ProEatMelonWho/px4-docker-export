@@ -1,0 +1,36 @@
+name: Build Agent v2.4.2 (force skip FastDDS)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y git cmake g++ libasio-dev libtinyxml2-dev libspdlog-dev libfastcdr-dev
+
+      - name: Clone Agent source
+        run: git clone -b v2.4.2 https://github.com/eProsima/Micro-XRCE-DDS-Agent.git
+
+      - name: Force remove FastDDS dependency
+        run: |
+          cd Micro-XRCE-DDS-Agent
+          # 删除第三方文件夹中对 fastdds 的引用
+          sed -i '/fastdds/d' thirdparty/CMakeLists.txt 2>/dev/null
+          # 确保根目录 CMakeLists 不包含 fastdds
+          sed -i '/fastdds/d' CMakeLists.txt 2>/dev/null
+
+      - name: Build Agent
+        run: |
+          cd Micro-XRCE-DDS-Agent
+          mkdir build && cd build
+          cmake .. -DUAGENT_USE_FASTDDS=OFF -DUAGENT_SUPERBUILD=OFF -DUAGENT_USE_LOGGER=ON
+          make -j$(nproc)
+          cp agent/src/agent/MicroXRCEAgent /tmp/
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MicroXRCEAgent
+          path: /tmp/MicroXRCEAgent
