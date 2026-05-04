@@ -1,0 +1,29 @@
+    name: Build MicroXRCEAgent v2.4.2
+
+    on:
+      workflow_dispatch:
+
+    jobs:
+      build:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Install build dependencies
+            run: sudo apt-get update && sudo apt-get install -y git cmake g++ libasio-dev libtinyxml2-dev libspdlog-dev libfastcdr-dev
+
+          - name: Clone Agent source
+            run: git clone -b v2.4.2 https://github.com/eProsima/Micro-XRCE-DDS-Agent.git
+
+          - name: Build Agent
+            run: |
+              cd Micro-XRCE-DDS-Agent
+              mkdir build && cd build
+              cmake ..
+              make -j$(nproc)
+              cp agent/src/agent/MicroXRCEAgent /tmp/
+
+          - name: Upload Artifact
+            uses: actions/upload-artifact@v4
+            with:
+              name: MicroXRCEAgent
+              path: /tmp/MicroXRCEAgent
+
